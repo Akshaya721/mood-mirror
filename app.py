@@ -121,7 +121,6 @@ st.markdown("<p style='text-align: center; font-style: italic;'>Tell me how you'
 st.markdown("### 📝 Write what you’re feeling in 1–2 lines...")
 
 # Input Box
-user_input = st.text_area("Reflect your thoughts here") 
 st.markdown(" ", unsafe_allow_html=True)
 user_input = st.text_area(" ", placeholder="e.g., I’m feeling lowkey sad today.", max_chars=200, label_visibility="collapsed")
 
@@ -181,15 +180,3 @@ if st.button("✨ Reflect"):
             st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
         st.warning("Please type something to reflect on.")
-
-# Download Button for app.py
-st.markdown("---")
-st.markdown("### Download Source Code")
-with open(__file__, "r") as file:
-    file_content = file.read()
-st.download_button(
-    label="Download app.py",
-    data=file_content,
-    file_name="app.py",
-    mime="text/plain"
-)
