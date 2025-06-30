@@ -171,12 +171,12 @@ if st.button("✨ Reflect"):
     else:
         st.warning("Please type something to reflect on.")
 
-# Hide Streamlit default menu and footer
 hide_streamlit_style = """
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    #MainMenu {visibility: hidden;}  /* Hides the hamburger (☰) menu */
+    footer {visibility: hidden;}     /* Hides 'Made with Streamlit' */
+    header {visibility: hidden;}     /* Hides the top header bar */
+    .st-emotion-cache-18ni7ap {display: none;} /* Hides top right GitHub menu */
     </style>
 """
 import streamlit as st
