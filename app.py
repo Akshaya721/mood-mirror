@@ -11,6 +11,19 @@ import random
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
 
+import streamlit as st
+
+hide_elements = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .viewerBadge_container__1QSob {display: none;}
+    .viewerBadge_link__1S137 {display: none;}
+    </style>
+"""
+st.markdown(hide_elements, unsafe_allow_html=True)
+
+
 # Initial CSS
 st.markdown("""
     <style>
