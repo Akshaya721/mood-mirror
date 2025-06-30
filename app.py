@@ -3,15 +3,11 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 from tone_data import get_emotion_and_reply
-import requests
 import time
-import json
-import random
 
-# Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
 
-# Initial CSS
+# Initial CSS with gradient background
 st.markdown("""
     <style>
     .stApp {
@@ -57,13 +53,11 @@ st.markdown("""
 
 # Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_json = st.secrets["google_credentials"]["content"]
-creds_dict = json.loads(creds_json)
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 client = gspread.authorize(creds)
 sheet = client.open("Mood Mirror Logs").sheet1
 
-# Mood-specific emojis and backgrounds
+# Mood-specific emojis and background images
 mood_emojis = {
     "tired": "😴",
     "sad": "😢",
@@ -86,29 +80,26 @@ mood_emojis = {
     "unknown": "🤔"
 }
 mood_backgrounds = {
-    "tired": "https://images.pexels.com/photos/32740698/pexels-photo-32740698/free-photo-of-aerial-view-of-a-serene-beach-with-a-lone-walker.jpeg",
-    "sad": "https://images.pexels.com/photos/6128370/pexels-photo-6128370.jpeg",
-    "angry": "https://images.pexels.com/photos/1054218/pexels-photo-1054218.jpeg",
-    "anxious": "https://images.pexels.com/photos/1323550/pexels-photo-1323550.jpeg",
-    "happy": "https://images.unsplash.com/photo-1543862475-eb136770ae9b",
-    "frustrated": "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg",
-    "helpless": "https://images.unsplash.com/photo-1510673398445-94f476ef2cbc",
-    "bored": "https://plus.unsplash.com/premium_photo-1680686089517-862755ff8616",
-    "grumpy": "https://images.pexels.com/photos/268134/pexels-photo-268134.jpeg",
-    "nervous": "https://images.pexels.com/photos/32550942/pexels-photo-32550942/free-photo-of-lush-terraced-hills-in-dagestan-russia.jpeg",
-    "relaxed": "https://images.pexels.com/photos/189349/pexels-photo-189349.jpeg",
-    "insecure": "https://images.pexels.com/photos/8709627/pexels-photo-8709627.jpeg",
-    "overwhelmed": "https://images.unsplash.com/photo-1553078954-b5770add7a4e",
-    "grateful": "https://images.pexels.com/photos/673018/pexels-photo-673018.jpeg",
-    "hopeful": "https://images.unsplash.com/photo-1495559493698-ae68846c94e8",
-    "motivated": "https://images.unsplash.com/photo-1656716870961-9cc8345ac4e3",
-    "lonely": "https://images.pexels.com/photos/32756394/pexels-photo-32756394/free-photo-of-lonely-figure-walking-through-flower-field.png",
-    "unknown": "https://images.pexels.com/photos/1266810/pexels-photo-1266810.jpeg"
+    "tired": "https://images.pexels.com/photos/936722/pexels-photo-936722.jpeg",  # Cozy bedroom
+    "sad": "https://images.pexels.com/photos/167964/pexels-photo-167964.jpeg",  # Rainy day
+    "angry": "https://images.pexels.com/photos/672532/pexels-photo-672532.jpeg",  # Dark forest
+    "anxious": "https://images.pexels.com/photos/1391457/pexels-photo-1391457.jpeg",  # Stormy ocean
+    "happy": "https://images.pexels.com/photos/531321/pexels-photo-531321.jpeg",  # Sunny field
+    "frustrated": "https://images.pexels.com/photos/417323/pexels-photo-417323.jpeg",  # Mountain sunset
+    "helpless": "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg",  # Foggy hills
+    "bored": "https://images.pexels.com/photos/1040626/pexels-photo-1040626.jpeg",  # Empty room
+    "grumpy": "https://images.pexels.com/photos/207962/pexels-photo-207962.jpeg",  # Cloudy sky
+    "nervous": "https://images.pexels.com/photos/1450361/pexels-photo-1450361.jpeg",  # Dark alley
+    "relaxed": "https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg",  # Serene lake
+    "insecure": "https://images.pexels.com/photos/1484567/pexels-photo-1484567.jpeg",  # Mirror reflection
+    "overwhelmed": "https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg",  # Busy city
+    "grateful": "https://images.pexels.com/photos/1454809/pexels-photo-1454809.jpeg",  # Sunset gratitude
+    "hopeful": "https://images.pexels.com/photos/110854/pexels-photo-110854.jpeg",  # Sunrise
+    "motivated": "https://images.pexels.com/photos/416160/pexels-photo-416160.jpeg",  # Mountain climb
+    "lonely": "https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg",  # Empty bench
+    "neutral": "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg",  # Balanced green hills
+    "unknown": "https://images.pexels.com/photos/1287149/pexels-photo-1287149.jpeg"  # Abstract nature
 }
-
-# Hugging Face API setup
-HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilbert-nli"
-HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
 
 # Title and subtitle
 st.markdown("<h1 style='text-align: center;'>🌈 Mood Mirror</h1>", unsafe_allow_html=True)
@@ -124,49 +115,25 @@ if st.button("✨ Reflect"):
     if user_input:
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
-            try:
-                # Try Hugging Face API
-                headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-                payload = {"inputs": user_input}
-                response = requests.post(HF_API_URL, headers=headers, json=payload)
-                response.raise_for_status()
-                results = response.json()[0]  # List of emotion scores
-                # Find the emotion with the highest score
-                primary_emotion = max(results, key=lambda x: x['score'])['label']
-                # Map Hugging Face emotions to your emotions
-                emotion_map = {
-                    "joy": "happy",
-                    "sadness": "sad",
-                    "anger": "angry",
-                    "fear": "anxious",
-                    "surprise": "hopeful",
-                    "disgust": "frustrated"
-                }
-                emotion = emotion_map.get(primary_emotion, "unknown")
-                # Use tone_data.py replies for consistency
-                if emotion != "unknown":
-                    reply = random.choice(emotions[emotion]["replies"])
-                else:
-                    reply = random.choice(emotions["unknown"]["replies"])
-            except (requests.RequestException, KeyError, IndexError):
-                # Fallback to tone_data.py
-                emotion, reply = get_emotion_and_reply(user_input)
-
-            # Log to Google Sheets
+            emotion, reply = get_emotion_and_reply(user_input)
+            print(f"Input: '{user_input}'")  # Log the exact input
+            print(f"Detected emotion: '{emotion}'")  # Log the detected emotion
+            print(f"Available moods: {list(mood_backgrounds.keys())}")  # List all expected moods
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             sheet.append_row([timestamp, user_input, emotion, reply])
-
-            # Update background and display response
-            emoji = mood_emojis.get(emotion.lower(), "😐")
-            background_path = mood_backgrounds.get(emotion.lower(), mood_backgrounds["unknown"])
-            st.markdown(f"""
-                <style>
-                .stApp {{
-                    background: url('{background_path}') no-repeat center center fixed;
-                    background-size: cover;
-                }}
-                </style>
-            """, unsafe_allow_html=True)
-            st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
+        
+        # Update background with mood-specific image
+        emoji = mood_emojis.get(emotion.lower(), "😐")
+        background_path = mood_backgrounds.get(emotion.lower(), mood_backgrounds["neutral"])
+        st.markdown(f"""
+            <style>
+            .stApp {{
+                background: url('{background_path}') no-repeat center center fixed;
+                background-size: cover;
+            }}
+            </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
         st.warning("Please type something to reflect on.")
