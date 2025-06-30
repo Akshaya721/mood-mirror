@@ -1,4 +1,5 @@
 streamlit
 requests
-requests
+gspread
+oauth2client
 transformers
