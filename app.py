@@ -121,7 +121,7 @@ st.markdown("<p style='text-align: center; font-style: italic;'>Tell me how you'
 st.markdown("### 📝 Write what you’re feeling in 1–2 lines...")
 
 # Input Box
-user_input = st.text_area snabb
+user_input = st.text_area("Reflect your thoughts here") 
 st.markdown(" ", unsafe_allow_html=True)
 user_input = st.text_area(" ", placeholder="e.g., I’m feeling lowkey sad today.", max_chars=200, label_visibility="collapsed")
 
