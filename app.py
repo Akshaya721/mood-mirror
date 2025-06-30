@@ -170,3 +170,14 @@ if st.button("✨ Reflect"):
             st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
         st.warning("Please type something to reflect on.")
+
+# Hide Streamlit default menu and footer
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+"""
+import streamlit as st
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
