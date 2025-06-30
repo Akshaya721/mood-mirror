@@ -108,7 +108,7 @@ mood_backgrounds = {
 
 # Hugging Face API setup
 HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilbert-nli"
-HF_API_TOKEN = st.secrets["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"]
+HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
 
 # Title and subtitle
 st.markdown("<h1 style='text-align: center;'>🌈 Mood Mirror</h1>", unsafe_allow_html=True)
