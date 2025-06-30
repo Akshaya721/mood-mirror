@@ -134,7 +134,7 @@ if st.button("✨ Reflect"):
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
             emotion = "unknown"
-            reply = random.choice(local_emotions["unknown"]["replies"])  # Default fallback
+            reply = random.choice(emotions["unknown"]["replies"])  # Default fallback
             try:
                 if HF_API_TOKEN:
                     # Try Hugging Face API
