@@ -6,11 +6,11 @@ import time
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
+
 try:
     from tone_data import get_emotion_and_reply, emotions
 except ImportError:
     emotions = None  # Fallback if tone_data.py or emotions is missing
-    from tone_data import get_emotion_and_reply
 
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
@@ -110,7 +110,6 @@ mood_backgrounds = {
     "unknown": "https://images.pexels.com/photos/1266810/pexels-photo-1266810.jpeg"
 }
 
-
 # Hugging Face API setup
 HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base"
 try:
@@ -134,7 +133,7 @@ if st.button("✨ Reflect"):
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
             emotion = "unknown"
-            reply = random.choice(emotions["unknown"]["replies"])  # Default fallback
+            reply = random.choice(local_emotions["unknown"]["replies"])  # Default fallback
             try:
                 if HF_API_TOKEN:
                     # Try Hugging Face API
@@ -156,8 +155,10 @@ if st.button("✨ Reflect"):
                         "neutral": "neutral"
                     }
                     emotion = emotion_map.get(primary_emotion, "unknown")
-                    # Try tone_data.py emotions if available, else use local_emotions
-                    reply = random.choice(emotions[emotion]["replies"] if emotions and emotion in emotions else local_emotions[emotion]["replies"])
+                    # Use local_emotions as the base, override with tone_data.py if available
+                    reply = random.choice(local_emotions[emotion]["replies"])
+                    if emotions and emotion in emotions:
+                        reply = random.choice(emotions[emotion]["replies"])
                 else:
                     raise ValueError("No valid Hugging Face API token provided.")
             except (requests.RequestException, KeyError, IndexError, ValueError) as e:
