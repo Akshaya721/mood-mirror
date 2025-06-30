@@ -7,6 +7,7 @@ import requests
 import time
 import json
 import random
+import base64
 
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
@@ -107,8 +108,12 @@ mood_backgrounds = {
 }
 
 # Hugging Face API setup
-HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilbert-nli"
-HF_API_TOKEN = "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"  # Replace with your Hugging Face API token
+HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base"
+try:
+    HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
+except KeyError:
+    st.error("Hugging Face API token not found. Please configure it in secrets.toml.")
+    HF_API_TOKEN = None
 
 # Title and subtitle
 st.markdown("<h1 style='text-align: center;'>🌈 Mood Mirror</h1>", unsafe_allow_html=True)
@@ -116,6 +121,8 @@ st.markdown("<p style='text-align: center; font-style: italic;'>Tell me how you'
 st.markdown("### 📝 Write what you’re feeling in 1–2 lines...")
 
 # Input Box
+user_input = st.text_area snabb
+st.markdown(" ", unsafe_allow_html=True)
 user_input = st.text_area(" ", placeholder="e.g., I’m feeling lowkey sad today.", max_chars=200, label_visibility="collapsed")
 
 # Reflect Button
@@ -124,31 +131,35 @@ if st.button("✨ Reflect"):
     if user_input:
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
+            emotion = "unknown"
+            reply = random.choice(emotions["unknown"]["replies"])  # Default fallback
             try:
-                # Try Hugging Face API
-                headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-                payload = {"inputs": user_input}
-                response = requests.post(HF_API_URL, headers=headers, json=payload)
-                response.raise_for_status()
-                results = response.json()[0]  # List of emotion scores
-                # Find the emotion with the highest score
-                primary_emotion = max(results, key=lambda x: x['score'])['label']
-                # Map Hugging Face emotions to your emotions
-                emotion_map = {
-                    "joy": "happy",
-                    "sadness": "sad",
-                    "anger": "angry",
-                    "fear": "anxious",
-                    "surprise": "hopeful",
-                    "disgust": "frustrated"
-                }
-                emotion = emotion_map.get(primary_emotion, "unknown")
-                # Use tone_data.py replies for consistency
-                if emotion != "unknown":
-                    reply = random.choice(emotions[emotion]["replies"])
+                if HF_API_TOKEN:
+                    # Try Hugging Face API
+                    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+                    payload = {"inputs": user_input}
+                    response = requests.post(HF_API_URL, headers=headers, json=payload)
+                    response.raise_for_status()
+                    results = response.json()[0]  # List of emotion scores
+                    # Find the emotion with the highest score
+                    primary_emotion = max(results, key=lambda x: x['score'])['label']
+                    # Map Hugging Face emotions to your emotions
+                    emotion_map = {
+                        "joy": "happy",
+                        "sadness": "sad",
+                        "anger": "angry",
+                        "fear": "anxious",
+                        "surprise": "hopeful",
+                        "disgust": "frustrated",
+                        "neutral": "neutral"
+                    }
+                    emotion = emotion_map.get(primary_emotion, "unknown")
+                    # Use tone_data.py replies for consistency
+                    reply = random.choice(emotions[emotion]["replies"]) if emotion in emotions else random.choice(emotions["unknown"]["replies"])
                 else:
-                    reply = random.choice(emotions["unknown"]["replies"])
-            except (requests.RequestException, KeyError, IndexError):
+                    raise ValueError("No valid Hugging Face API token provided.")
+            except (requests.RequestException, KeyError, IndexError, ValueError) as e:
+                st.warning(f"Hugging Face API failed: {str(e)}. Using fallback emotion detection.")
                 # Fallback to tone_data.py
                 emotion, reply = get_emotion_and_reply(user_input)
 
@@ -170,3 +181,15 @@ if st.button("✨ Reflect"):
             st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
         st.warning("Please type something to reflect on.")
+
+# Download Button for app.py
+st.markdown("---")
+st.markdown("### Download Source Code")
+with open(__file__, "r") as file:
+    file_content = file.read()
+st.download_button(
+    label="Download app.py",
+    data=file_content,
+    file_name="app.py",
+    mime="text/plain"
+)
