@@ -107,12 +107,8 @@ mood_backgrounds = {
 }
 
 # Hugging Face API setup
-HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base"
-try:
-    HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
-except KeyError:
-    st.error("Hugging Face API token not found. Please configure it in secrets.toml.")
-    HF_API_TOKEN = None
+HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilbert-nli"
+HF_API_TOKEN = "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"  # Replace with your Hugging Face API token
 
 # Title and subtitle
 st.markdown("<h1 style='text-align: center;'>🌈 Mood Mirror</h1>", unsafe_allow_html=True)
@@ -128,35 +124,31 @@ if st.button("✨ Reflect"):
     if user_input:
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
-            emotion = "unknown"
-            reply = random.choice(emotions["unknown"]["replies"])  # Default fallback
             try:
-                if HF_API_TOKEN:
-                    # Try Hugging Face API
-                    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-                    payload = {"inputs": user_input}
-                    response = requests.post(HF_API_URL, headers=headers, json=payload)
-                    response.raise_for_status()
-                    results = response.json()[0]  # List of emotion scores
-                    # Find the emotion with the highest score
-                    primary_emotion = max(results, key=lambda x: x['score'])['label']
-                    # Map Hugging Face emotions to your emotions
-                    emotion_map = {
-                        "joy": "happy",
-                        "sadness": "sad",
-                        "anger": "angry",
-                        "fear": "anxious",
-                        "surprise": "hopeful",
-                        "disgust": "frustrated",
-                        "neutral": "neutral"
-                    }
-                    emotion = emotion_map.get(primary_emotion, "unknown")
-                    # Use tone_data.py replies for consistency
-                    reply = random.choice(emotions[emotion]["replies"]) if emotion in emotions else random.choice(emotions["unknown"]["replies"])
+                # Try Hugging Face API
+                headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+                payload = {"inputs": user_input}
+                response = requests.post(HF_API_URL, headers=headers, json=payload)
+                response.raise_for_status()
+                results = response.json()[0]  # List of emotion scores
+                # Find the emotion with the highest score
+                primary_emotion = max(results, key=lambda x: x['score'])['label']
+                # Map Hugging Face emotions to your emotions
+                emotion_map = {
+                    "joy": "happy",
+                    "sadness": "sad",
+                    "anger": "angry",
+                    "fear": "anxious",
+                    "surprise": "hopeful",
+                    "disgust": "frustrated"
+                }
+                emotion = emotion_map.get(primary_emotion, "unknown")
+                # Use tone_data.py replies for consistency
+                if emotion != "unknown":
+                    reply = random.choice(emotions[emotion]["replies"])
                 else:
-                    raise ValueError("No valid Hugging Face API token provided.")
-            except (requests.RequestException, KeyError, IndexError, ValueError) as e:
-                st.warning(f"Hugging Face API failed: {str(e)}. Using fallback emotion detection.")
+                    reply = random.choice(emotions["unknown"]["replies"])
+            except (requests.RequestException, KeyError, IndexError):
                 # Fallback to tone_data.py
                 emotion, reply = get_emotion_and_reply(user_input)
 
