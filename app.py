@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -5,6 +6,8 @@ from datetime import datetime
 from tone_data import get_emotion_and_reply
 import requests
 import time
+import json
+import random
 
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
@@ -53,9 +56,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Google Sheets Setup (unchanged)
+# Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
+creds_json = st.secrets["google_credentials"]["content"]
+creds_dict = json.loads(creds_json)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 sheet = client.open("Mood Mirror Logs").sheet1
 
@@ -84,22 +89,22 @@ mood_emojis = {
 mood_backgrounds = {
     "tired": "https://images.pexels.com/photos/32740698/pexels-photo-32740698/free-photo-of-aerial-view-of-a-serene-beach-with-a-lone-walker.jpeg",
     "sad": "https://images.pexels.com/photos/6128370/pexels-photo-6128370.jpeg",
-    "angry": "https://images.pexels.com/photos/1054218/pexels-photo-1054218.jpeg?",
-    "anxious": "https://images.pexels.com/photos/1323550/pexels-photo-1323550.jpeg?",
-    "happy": "https://images.unsplash.com/photo-1543862475-eb136770ae9b?.jpeg",
-    "frustrated": "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg?",
-    "helpless": "https://images.unsplash.com/photo-1510673398445-94f476ef2cbc?",
-    "bored": "https://plus.unsplash.com/premium_photo-1680686089517-862755ff8616?jpeg",
-    "grumpy": "https://images.pexels.com/photos/268134/pexels-photo-268134.jpeg?.jpeg",
+    "angry": "https://images.pexels.com/photos/1054218/pexels-photo-1054218.jpeg",
+    "anxious": "https://images.pexels.com/photos/1323550/pexels-photo-1323550.jpeg",
+    "happy": "https://images.unsplash.com/photo-1543862475-eb136770ae9b",
+    "frustrated": "https://images.pexels.com/photos/210243/pexels-photo-210243.jpeg",
+    "helpless": "https://images.unsplash.com/photo-1510673398445-94f476ef2cbc",
+    "bored": "https://plus.unsplash.com/premium_photo-1680686089517-862755ff8616",
+    "grumpy": "https://images.pexels.com/photos/268134/pexels-photo-268134.jpeg",
     "nervous": "https://images.pexels.com/photos/32550942/pexels-photo-32550942/free-photo-of-lush-terraced-hills-in-dagestan-russia.jpeg",
-    "relaxed": "https://images.pexels.com/photos/189349/pexels-photo-189349.jpeg?",
-    "insecure": "https://images.pexels.com/photos/8709627/pexels-photo-8709627.jpeg?",
-    "overwhelmed": "https://images.unsplash.com/photo-1553078954-b5770add7a4e?.jpeg",
-    "grateful": "https://images.pexels.com/photos/673018/pexels-photo-673018.jpeg?",
-    "hopeful": "https://images.unsplash.com/photo-1495559493698-ae68846c94e8?.jpeg",
-    "motivated": "https://images.unsplash.com/photo-1656716870961-9cc8345ac4e3?.jpeg",
-    "lonely": "https://images.pexels.com/photos/32756394/pexels-photo-32756394/free-photo-of-lonely-figure-walking-through-flower-field.png?",
-    "unknown": "https://images.pexels.com/photos/1266810/pexels-photo-1266810.jpeg?"
+    "relaxed": "https://images.pexels.com/photos/189349/pexels-photo-189349.jpeg",
+    "insecure": "https://images.pexels.com/photos/8709627/pexels-photo-8709627.jpeg",
+    "overwhelmed": "https://images.unsplash.com/photo-1553078954-b5770add7a4e",
+    "grateful": "https://images.pexels.com/photos/673018/pexels-photo-673018.jpeg",
+    "hopeful": "https://images.unsplash.com/photo-1495559493698-ae68846c94e8",
+    "motivated": "https://images.unsplash.com/photo-1656716870961-9cc8345ac4e3",
+    "lonely": "https://images.pexels.com/photos/32756394/pexels-photo-32756394/free-photo-of-lonely-figure-walking-through-flower-field.png",
+    "unknown": "https://images.pexels.com/photos/1266810/pexels-photo-1266810.jpeg"
 }
 
 # Hugging Face API setup
@@ -166,3 +171,4 @@ if st.button("✨ Reflect"):
             st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
         st.warning("Please type something to reflect on.")
+```
