@@ -11,7 +11,7 @@ import random
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
 
-# Initial CSS (unchanged)
+# Initial CSS
 st.markdown("""
     <style>
     .stApp {
@@ -63,7 +63,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 sheet = client.open("Mood Mirror Logs").sheet1
 
-# Mood-specific emojis and backgrounds (unchanged)
+# Mood-specific emojis and backgrounds
 mood_emojis = {
     "tired": "😴",
     "sad": "😢",
@@ -108,14 +108,14 @@ mood_backgrounds = {
 
 # Hugging Face API setup
 HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilbert-nli"
-HF_API_TOKEN = "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"  # Replace with your Hugging Face API token
+HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
 
-# Title and subtitle (unchanged)
+# Title and subtitle
 st.markdown("<h1 style='text-align: center;'>🌈 Mood Mirror</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-style: italic;'>Tell me how you're feeling, and I’ll reflect a kind thought.</p>", unsafe_allow_html=True)
 st.markdown("### 📝 Write what you’re feeling in 1–2 lines...")
 
-# Input Box (unchanged)
+# Input Box
 user_input = st.text_area(" ", placeholder="e.g., I’m feeling lowkey sad today.", max_chars=200, label_visibility="collapsed")
 
 # Reflect Button
@@ -152,11 +152,11 @@ if st.button("✨ Reflect"):
                 # Fallback to tone_data.py
                 emotion, reply = get_emotion_and_reply(user_input)
 
-            # Log to Google Sheets (unchanged)
+            # Log to Google Sheets
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             sheet.append_row([timestamp, user_input, emotion, reply])
 
-            # Update background and display response (unchanged)
+            # Update background and display response
             emoji = mood_emojis.get(emotion.lower(), "😐")
             background_path = mood_backgrounds.get(emotion.lower(), mood_backgrounds["unknown"])
             st.markdown(f"""
