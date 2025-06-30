@@ -169,4 +169,4 @@ if st.button("✨ Reflect"):
             """, unsafe_allow_html=True)
             st.markdown(f"<div class='response-box'>{reply} {emoji}</div>", unsafe_allow_html=True)
     else:
-        st.warning("Please type something to reflect on."
+        st.warning("Please type something to reflect on.")
