@@ -1,13 +1,16 @@
-import streamlit as st
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
-from tone_data import get_emotion_and_reply
-import requests
-import time
 import json
 import random
-import base64
+import requests
+import streamlit as st
+import time
+from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
+try:
+    from tone_data import get_emotion_and_reply, emotions
+except ImportError:
+    emotions = None  # Fallback if tone_data.py or emotions is missing
+    from tone_data import get_emotion_and_reply
 
 # Streamlit page config
 st.set_page_config(page_title="Mood Mirror", layout="centered")
@@ -107,12 +110,13 @@ mood_backgrounds = {
     "unknown": "https://images.pexels.com/photos/1266810/pexels-photo-1266810.jpeg"
 }
 
+
 # Hugging Face API setup
 HF_API_URL = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base"
 try:
     HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
 except KeyError:
-    st.error("Hugging Face API token not found. Please configure it in secrets.toml.")
+    st.warning("Hugging Face API token not found. Using fallback emotion detection. Please configure HF_API_TOKEN in secrets.toml.")
     HF_API_TOKEN = None
 
 # Title and subtitle
@@ -121,7 +125,6 @@ st.markdown("<p style='text-align: center; font-style: italic;'>Tell me how you'
 st.markdown("### 📝 Write what you’re feeling in 1–2 lines...")
 
 # Input Box
-st.markdown(" ", unsafe_allow_html=True)
 user_input = st.text_area(" ", placeholder="e.g., I’m feeling lowkey sad today.", max_chars=200, label_visibility="collapsed")
 
 # Reflect Button
@@ -131,7 +134,7 @@ if st.button("✨ Reflect"):
         with st.spinner("Reflecting your mood..."):
             time.sleep(1.2)
             emotion = "unknown"
-            reply = random.choice(emotions["unknown"]["replies"])  # Default fallback
+            reply = random.choice(local_emotions["unknown"]["replies"])  # Default fallback
             try:
                 if HF_API_TOKEN:
                     # Try Hugging Face API
@@ -153,14 +156,19 @@ if st.button("✨ Reflect"):
                         "neutral": "neutral"
                     }
                     emotion = emotion_map.get(primary_emotion, "unknown")
-                    # Use tone_data.py replies for consistency
-                    reply = random.choice(emotions[emotion]["replies"]) if emotion in emotions else random.choice(emotions["unknown"]["replies"])
+                    # Try tone_data.py emotions if available, else use local_emotions
+                    reply = random.choice(emotions[emotion]["replies"] if emotions and emotion in emotions else local_emotions[emotion]["replies"])
                 else:
                     raise ValueError("No valid Hugging Face API token provided.")
             except (requests.RequestException, KeyError, IndexError, ValueError) as e:
                 st.warning(f"Hugging Face API failed: {str(e)}. Using fallback emotion detection.")
                 # Fallback to tone_data.py
-                emotion, reply = get_emotion_and_reply(user_input)
+                try:
+                    emotion, reply = get_emotion_and_reply(user_input)
+                except Exception as e:
+                    st.warning(f"Fallback detection failed: {str(e)}. Using default reply.")
+                    emotion = "unknown"
+                    reply = random.choice(local_emotions["unknown"]["replies"])
 
             # Log to Google Sheets
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
