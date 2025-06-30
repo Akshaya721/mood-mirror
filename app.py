@@ -13,16 +13,24 @@ st.set_page_config(page_title="Mood Mirror", layout="centered")
 
 import streamlit as st
 
-hide_elements = """
+hide_badges_and_footer = """
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    .viewerBadge_container__1QSob {display: none;}
-    .viewerBadge_link__1S137 {display: none;}
+    /* Hide Streamlit's footer */
+    footer {visibility: hidden !important;}
+
+    /* Hide GitHub button / viewer badge */
+    .viewerBadge_container__1QSob, .viewerBadge_link__1S137, 
+    .css-164nlkn, .css-1dp5vir, .css-zq5wmm, .stActionButton {
+        display: none !important;
+    }
+
+    /* Extra failsafe for anchor elements linking to GitHub */
+    a[href*="github.com"] {
+        display: none !important;
+    }
     </style>
 """
-st.markdown(hide_elements, unsafe_allow_html=True)
-
+st.markdown(hide_badges_and_footer, unsafe_allow_html=True)
 
 # Initial CSS
 st.markdown("""
